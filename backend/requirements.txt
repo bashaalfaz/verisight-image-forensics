@@ -1,0 +1,13 @@
+Flask>=3.0,<4
+Flask-PyMongo>=2.3
+Flask-Login>=0.6
+Flask-WTF>=1.2
+Flask-Limiter>=3.5
+pymongo>=4.6
+dnspython>=2.4
+python-dotenv>=1.0
+tensorflow>=2.15,<3
+Pillow>=10
+numpy>=1.26
+gunicorn>=21
+requests>=2.31

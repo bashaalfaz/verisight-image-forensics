@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+backend/.env
+backend/instance/uploads/*
+!backend/instance/uploads/.gitkeep
+
+# Model artifacts and generated training outputs
+backend/models/*.keras
+training/*.keras
+training/*.h5
+training/*.csv
+training/*.png
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS/editor
+.DS_Store
+.vscode/
