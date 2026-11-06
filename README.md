@@ -1,112 +1,336 @@
-# DeepSight Pro — Full-stack AI image screening
+# VeriSight – AI-Powered Image Forensics Platform
 
-DeepSight is a React + Flask + MongoDB application connected to a custom CNN trained from random initialization. The project includes account registration, session login, image inference, private image storage, prediction persistence, dashboard statistics, history, report details and deletion.
+**An end-to-end deep learning platform for image authenticity detection using a custom Convolutional Neural Network (CNN), React, Flask, and MongoDB.**
 
-## Architecture
+VeriSight is a full-stack AI-powered image analysis platform designed to classify images as REAL or FAKE. It combines a custom CNN trained from scratch with a modern web application that allows users to upload images, receive prediction results, visualize confidence scores, and manage their previous analyses.
 
-React (Vite) → same-origin `/api/*` requests → Flask session + CSRF → MongoDB users/predictions → private local image storage. The prediction API loads the trained Keras model and the validation-selected threshold from `deepsight_model_config.json`.
+## Key Features
 
-## 1. Requirements
+- **Custom Deep Learning Model:** CNN architecture trained from random initialization rather than relying on pretrained classification weights.
+- **Image Classification:** Predicts whether an uploaded image is REAL or FAKE.
+- **Secure Authentication:** User registration, login, password hashing, and session management.
+- **Interactive Dashboard:** Displays prediction statistics and recent analyses.
+- **Prediction History:** Stores and retrieves previous predictions for individual users.
+- **Detailed Reports:** Displays class probabilities, confidence scores, model version, and image previews.
+- **Private Image Storage:** Stores uploaded images securely with user-specific access controls.
+- **Responsive Interface:** Modern React-based interface designed for desktop and mobile devices.
 
-- Python 3.10 or 3.11 recommended for TensorFlow compatibility.
-- Node.js 20+ and npm.
-- MongoDB local or MongoDB Atlas.
-- A trained `deepsight_detector.keras` model created by `training/train_deepsight.ipynb`.
+## System Architecture
 
-## 2. Start MongoDB
+```text
+                 USER
+                   |
+                   v
+          REACT FRONTEND (Vite)
+                   |
+          Image Upload / Login
+                   |
+                   v
+             FLASK REST API
+                   |
+          Authentication & CSRF
+                   |
+                   v
+          IMAGE PREPROCESSING
+                   |
+             Resize to 224x224
+             RGB Conversion
+                   |
+                   v
+          CUSTOM CNN MODEL
+                   |
+             REAL / FAKE
+             Probability Scores
+                   |
+          Validation-Selected
+            Decision Threshold
+                   |
+             +-----+------+
+             |            |
+             v            v
+          MongoDB     Private Image
+          Database      Storage
+             |            |
+             +-----+------+
+                   |
+                   v
+          RESULT & HISTORY
+                   |
+                   v
+             REACT DASHBOARD
+```
 
-Local option with Docker:
+## Technology Stack
+
+| Component | Technologies |
+|---|---|
+| Frontend | React.js, Vite, JavaScript, CSS |
+| Backend | Python, Flask, REST API |
+| Deep Learning | TensorFlow, Keras, Custom CNN |
+| Database | MongoDB, PyMongo |
+| Image Processing | Pillow, NumPy |
+| Authentication | Flask-Login, Werkzeug |
+| Security | CSRF Protection, Rate Limiting |
+| Development | VS Code, Git, GitHub |
+
+## Deep Learning Pipeline
+
+The model development workflow includes:
+
+1. Dataset collection and organization.
+2. Image preprocessing and RGB conversion.
+3. Duplicate image detection.
+4. Source/generator-aware dataset splitting.
+5. Training, validation, and independent testing.
+6. Custom CNN architecture development.
+7. Model training with training-only augmentation.
+8. Validation-based decision threshold selection.
+9. Independent test evaluation.
+10. JPEG compression robustness evaluation.
+
+The model is trained from random initialization, allowing the network to learn image features directly from the training dataset.
+
+### Model Evaluation
+
+The evaluation framework includes:
+
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- Confusion Matrix
+- ROC-AUC
+- JPEG Compression Robustness
+
+**Note:** Actual evaluation scores should be added here after running the final training and independent testing pipeline. Do not report expected scores as achieved results.
+
+## Application Workflow
+
+1. Users register or sign in.
+2. The dashboard provides access to image analysis and previous reports.
+3. Users upload an image through the React interface.
+4. Flask validates and preprocesses the uploaded image.
+5. The custom CNN performs inference.
+6. The backend applies the validation-selected decision threshold.
+7. Prediction results and metadata are stored in MongoDB.
+8. The frontend displays the prediction and confidence scores.
+9. Users can revisit or delete previous reports.
+
+## Project Structure
+
+```text
+verisight-image-forensics/
+│
+├── backend/
+│   ├── app.py
+│   ├── requirements.txt
+│   ├── models/
+│   ├── scripts/
+│   └── instance/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── main.jsx
+│   │   ├── api.js
+│   │   └── style.css
+│   ├── package.json
+│   └── vite.config.js
+│
+├── training/
+│   ├── train_deepsight.ipynb
+│   └── README.md
+│
+├── docs/
+│   ├── architecture.md
+│   └── recruiter_pitch.md
+│
+├── docker-compose.yml
+├── .gitignore
+└── README.md
+```
+
+## Installation and Setup
+
+### Prerequisites
+
+- Python 3.10 or 3.11
+- Node.js 20+
+- MongoDB or MongoDB Atlas
+- npm
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/bashaalfaz/verisight-image-forensics.git
+cd verisight-image-forensics
+```
+
+### 2. Start MongoDB
+
+Using Docker:
+
 ```bash
 docker compose up -d mongodb
 ```
-Or create a MongoDB Atlas database and use its connection URI.
 
-## 3. Configure and start Flask
+Alternatively, configure a MongoDB Atlas connection URI.
+
+### 3. Configure the backend
 
 ```bash
 cd backend
+
 python -m venv .venv
-# Windows:
+
+# Windows
 .venv\\Scripts\\activate
-# macOS/Linux:
-# source .venv/bin/activate
 
 pip install -r requirements.txt
-copy .env.example .env
 ```
 
-Edit `backend/.env`:
-- Set a long random `SECRET_KEY`.
-- Set `MONGO_URI` to local MongoDB or your Atlas URI.
-- Keep `COOKIE_SECURE=false` for localhost. Set it to `true` behind HTTPS in production.
+Create a `.env` file using `.env.example`.
 
-Train the notebook first, then copy **both** generated files:
-- `deepsight_detector.keras` → `backend/models/deepsight_detector.keras`
-- `deepsight_model_config.json` → `backend/models/deepsight_model_config.json`
+Configure:
 
-Start Flask:
+```env
+SECRET_KEY=your_random_secret
+MONGO_URI=mongodb://127.0.0.1:27017/deepsight
+FLASK_DEBUG=true
+COOKIE_SECURE=false
+```
+
+### 4. Configure the trained model
+
+After training the model using the notebook, place the generated artifacts in:
+
+```text
+backend/models/
+    deepsight_detector.keras
+    deepsight_model_config.json
+```
+
+### 5. Run Flask
+
 ```bash
 python app.py
 ```
-Backend health:
-`http://127.0.0.1:5000/api/health`
 
-On Windows, after MongoDB is running and `.env` is configured, you can use `start_deepsight_windows.bat` from the project root. It opens separate backend and frontend terminals. The first run installs Python and Node dependencies.
+Backend URL:
 
-## 4. Start React
+`http://127.0.0.1:5000`
 
-In a second terminal:
+### 6. Run the React frontend
+
+Open another terminal:
+
 ```bash
 cd frontend
+
 npm install
+
 npm run dev
 ```
-Open `http://127.0.0.1:5173`. Vite proxies `/api` to Flask on port 5000. Keep both servers running during development.
 
-## 5. Production-style frontend build
+Frontend URL:
 
-```bash
-cd frontend
-npm run build
-```
-Then run Flask. Flask serves `frontend/dist` at `http://127.0.0.1:5000`. Rebuild after frontend changes.
+`http://127.0.0.1:5173`
 
-## 6. End-to-end integration test
+## Database Design
 
-With MongoDB, Flask, the trained model and frontend/backend dependencies running:
+### Users Collection
+
+Stores:
+- User ID
+- Name
+- Email
+- Password hash
+- Account creation timestamp
+
+### Predictions Collection
+
+Stores:
+- Prediction ID
+- User ID
+- Original filename
+- Predicted class
+- REAL probability
+- FAKE probability
+- Confidence score
+- Decision threshold
+- Model version
+- Image storage key
+- Creation timestamp
+
+Uploaded images are stored in private server-side storage, while MongoDB maintains their metadata and ownership references.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/csrf` | Generate CSRF token |
+| POST | `/api/auth/signup` | Register account |
+| POST | `/api/auth/login` | Authenticate user |
+| GET | `/api/auth/me` | Retrieve current user |
+| POST | `/api/auth/logout` | End session |
+| GET | `/api/dashboard` | Dashboard statistics |
+| GET | `/api/history` | Retrieve prediction history |
+| POST | `/api/predict` | Upload and classify image |
+| GET | `/api/predictions/{id}` | Retrieve report |
+| GET | `/api/predictions/{id}/image` | Retrieve private image |
+| DELETE | `/api/predictions/{id}` | Delete prediction |
+
+## Testing
+
+The repository includes an end-to-end integration smoke test.
+
+Run:
+
 ```bash
 cd backend
-python scripts/e2e_smoke_test.py --base-url http://127.0.0.1:5000
+
+python scripts/e2e_smoke_test.py
 ```
-This test creates a temporary smoke-test account, uploads a generated sample image through the actual model, checks MongoDB history/report/private-image retrieval, deletes the prediction and verifies logout. It requires the trained model file and a working database. The test account remains in the users collection; remove it manually after the test if desired.
 
-## 7. Data stored
+The test exercises:
 
-MongoDB:
-- `users`: normalized email, name, password hash, account timestamp.
-- `predictions`: owner ID, prediction, scores, threshold, model version, timestamp, filename, private image key and file metadata.
+- Account registration and login.
+- Authenticated dashboard access.
+- Image upload and CNN inference.
+- MongoDB prediction persistence.
+- Prediction history retrieval.
+- Report and private image retrieval.
+- Prediction deletion.
+- Logout verification.
 
-Images are stored as optimized JPEG files in `backend/instance/uploads`, not as MongoDB binary blobs. Every image read is checked against the signed-in user's ownership. Keep this folder private and back it up according to your retention policy.
+The test requires a running MongoDB instance and the trained model artifacts.
 
-## 8. API flow
+## Security Considerations
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/csrf` | Obtain CSRF token |
-| POST | `/api/auth/signup` | Register and sign in |
-| POST | `/api/auth/login` | Sign in |
-| GET | `/api/auth/me` | Current session |
-| POST | `/api/auth/logout` | Sign out |
-| GET | `/api/dashboard` | Statistics and recent results |
-| GET | `/api/history` | Paginated user history |
-| POST | `/api/predict` | Upload, infer and persist |
-| GET | `/api/predictions/<id>` | Report detail |
-| GET | `/api/predictions/<id>/image` | Private image |
-| DELETE | `/api/predictions/<id>` | Delete record and image |
-| GET | `/api/health` | Database/model/frontend health |
+Implemented security measures include:
 
-## 9. Security before public deployment
+- Password hashing.
+- CSRF protection.
+- Session-based authentication.
+- Login and signup rate limiting.
+- Image upload size and format validation.
+- User-specific data access.
+- Private image storage.
 
-CSRF protection, password hashing, per-user data ownership, upload limits, unique email indexing and basic IP-based rate limits are included. For production, use HTTPS, a strong secret, a persistent rate-limit store (Redis), MongoDB authentication/TLS/network allow-list, email verification, password reset, monitoring, backups, private object storage and account/image deletion workflows. The in-memory rate-limit store is for development only.
+Additional production hardening includes HTTPS, persistent rate limiting, email verification, password recovery, monitoring, database backups, and secure object storage.
 
-The detector is an AI screening estimate, not definitive forensic evidence. Report only measured evaluation results from your own held-out datasets.
+## Future Improvements
+
+- PDF export for prediction reports.
+- Explainable AI using Grad-CAM visualizations.
+- Additional image manipulation detection techniques.
+- Expanded robustness evaluation.
+- Model monitoring and version management.
+- Production deployment with cloud infrastructure.
+
+## Important Disclaimer
+
+VeriSight provides AI-generated image authenticity estimates. Predictions are not definitive forensic evidence and should not be treated as proof of image authenticity or manipulation.
+
+---
+
+**Developed as a Deep Learning and Full-Stack Engineering Project.**
